@@ -1,0 +1,12 @@
+{application, kafka_interworking_proxy,
+ [{description, "kafka_interworking_proxy for Mobility Platform"},
+  {vsn, "git"},
+  {modules, []},
+  {registered, [kafka_interworking_proxy_sup]},
+  {applications, [kernel, stdlib, ekaf]},
+  {mod, {kafka_interworking_proxy_app,[]}},
+  {env, []},
+  {licenses, ["Apache-2.0"]},
+  {maintainers, ["Hongbeom Ahn <hb.ahn@sktelecom.com>"]},
+  {links, []}
+ ]}.
