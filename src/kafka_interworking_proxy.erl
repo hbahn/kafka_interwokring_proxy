@@ -88,14 +88,14 @@ on_client_disconnected(ClientInfo = #{clientid := ClientId, username := Username
         ]),
         sendMsgToKafka(Json).
 
-on_client_subscribe(#{clientid := ClientId, username := Username}, _Properties, TopicFilters, _Env) ->
+on_client_subscribe(#{clientid := ClientId, username := Username}, _Properties, TopicFilters = #{topic := Topic}, _Env) ->
     Json = jsx:encode([
                 {broker, list_to_binary(hostName())},
                 {hook, list_to_binary("on_client_subscribe")},
                 {timestamp, list_to_binary(timestamp())},
                 {clientId, ClientId },
                 {username, Username},
-                {topic, TopicFilters}
+                {topic, Topic}
             ]),
             sendMsgToKafka(Json),
     {ok, TopicFilters}.
