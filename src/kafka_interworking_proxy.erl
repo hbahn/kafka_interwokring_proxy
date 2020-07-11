@@ -27,6 +27,11 @@
         , on_client_disconnected/4
         ]).
 
+%% Session Lifecircle Hooks
+-export([ on_session_subscribed/4
+        , on_session_unsubscribed/4
+        ]).
+
 %% Message Pubsub Hooks
 -export([ on_message_publish/2
         , on_message_delivered/3
@@ -38,6 +43,8 @@ load(Env) ->
     ekaf_init([Env]),
     emqx:hook('client.connack',      {?MODULE, on_client_connack, [Env]}),
     emqx:hook('client.disconnected', {?MODULE, on_client_disconnected, [Env]}),
+    emqx:hook('session.subscribed',  {?MODULE, on_session_subscribed, [Env]}),
+    emqx:hook('session.unsubscribed',{?MODULE, on_session_unsubscribed, [Env]}),
     emqx:hook('message.publish',     {?MODULE, on_message_publish, [Env]}),
     emqx:hook('message.delivered',   {?MODULE, on_message_delivered, [Env]}),
     emqx:hook('message.acked',       {?MODULE, on_message_acked, [Env]}).
@@ -83,6 +90,32 @@ on_client_disconnected(ClientInfo = #{clientid := ClientId, username := Username
             {reason, ReasonCode}
         ]),
         sendMsgToKafka(Json).
+
+%%--------------------------------------------------------------------
+%% Session Lifecircle Hooks
+%%--------------------------------------------------------------------
+
+on_session_subscribed(#{clientid := ClientId, username := Username}, Topic, SubOpts, _Env) ->
+    Json = jsx:encode([
+                {broker, list_to_binary(hostName())},
+                {hook, list_to_binary("on_session_subscribe")},
+                {timestamp, list_to_binary(timestamp())},
+                {clientId, ClientId },
+                {username, Username},
+                {topic, Topic}
+            ]),
+            sendMsgToKafka(Json).
+
+on_session_unsubscribed(#{clientid := ClientId, username := Username}, Topic, Opts, _Env) ->
+     Json = jsx:encode([
+                {broker, list_to_binary(hostName())},
+                {hook, list_to_binary("on_session_unsubscribe")},
+                {timestamp, list_to_binary(timestamp())},
+                {clientId, ClientId },
+                {username, Username},
+                {topic, Topic}
+            ]),
+            sendMsgToKafka(Json).
 
 
 %%--------------------------------------------------------------------
@@ -172,6 +205,8 @@ on_message_acked(_ClientInfo = #{clientid := ClientId, username := Username}, Me
 unload() ->
     emqx:unhook('client.connack',      {?MODULE, on_client_connack}),
     emqx:unhook('client.disconnected', {?MODULE, on_client_disconnected}),
+    emqx:unhook('session.subscribed',  {?MODULE, on_session_subscribed}),
+    emqx:unhook('session.unsubscribed',{?MODULE, on_session_unsubscribed}),
     emqx:unhook('message.publish',     {?MODULE, on_message_publish}),
     emqx:unhook('message.delivered',   {?MODULE, on_message_delivered}),
     emqx:unhook('message.acked',       {?MODULE, on_message_acked}).
