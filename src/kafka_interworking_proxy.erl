@@ -27,11 +27,6 @@
         , on_client_disconnected/4
         ]).
 
-%% Session Lifecircle Hooks
--export([ on_session_subscribed/4
-        , on_session_unsubscribed/4
-        ]).
-
 %% Message Pubsub Hooks
 -export([ on_message_publish/2
         , on_message_delivered/3
@@ -43,8 +38,6 @@ load(Env) ->
     ekaf_init([Env]),
     emqx:hook('client.connack',      {?MODULE, on_client_connack, [Env]}),
     emqx:hook('client.disconnected', {?MODULE, on_client_disconnected, [Env]}),
-    emqx:hook('session.subscribed',  {?MODULE, on_session_subscribed, [Env]}),
-    emqx:hook('session.unsubscribed',{?MODULE, on_session_unsubscribed, [Env]}),
     emqx:hook('message.publish',     {?MODULE, on_message_publish, [Env]}),
     emqx:hook('message.delivered',   {?MODULE, on_message_delivered, [Env]}),
     emqx:hook('message.acked',       {?MODULE, on_message_acked, [Env]}).
@@ -91,31 +84,7 @@ on_client_disconnected(ClientInfo = #{clientid := ClientId, username := Username
         ]),
         sendMsgToKafka(Json).
 
-%%--------------------------------------------------------------------
-%% Session Lifecircle Hooks
-%%--------------------------------------------------------------------
 
-on_session_subscribed(#{clientid := ClientId, username := Username}, Topic, SubOpts, _Env) ->
-    Json = jsx:encode([
-                {broker, list_to_binary(hostName())},
-                {hook, list_to_binary("on_session_subscribe")},
-                {timestamp, list_to_binary(timestamp())},
-                {clientId, ClientId },
-                {username, Username},
-                {topic, Topic}
-            ]),
-            sendMsgToKafka(Json).
-
-on_session_unsubscribed(#{clientid := ClientId, username := Username}, Topic, Opts, _Env) ->
-     Json = jsx:encode([
-                {broker, list_to_binary(hostName())},
-                {hook, list_to_binary("on_session_unsubscribe")},
-                {timestamp, list_to_binary(timestamp())},
-                {clientId, ClientId },
-                {username, Username},
-                {topic, Topic}
-            ]),
-            sendMsgToKafka(Json).
 %%--------------------------------------------------------------------
 %% Message PubSub Hooks
 %%--------------------------------------------------------------------
@@ -216,11 +185,14 @@ ekaf_init(_Env) ->
     {ok, Values} = application:get_env(kafka_interworking_proxy, values),
     BootstrapBroker = proplists:get_value(bootstrap_broker, Values),
     PartitionStrategy= proplists:get_value(partition_strategy, Values),
+    PartitionWorkers = proplists:get_value(partition_workers, Values),
+    PartitionWorkersMax = proplists:get_value(partition_workers_max, Values),
+    DownTimeBufferSize = proplists:get_value(downtime_buffer_size, Values),
     application:set_env(ekaf, ekaf_partition_strategy, PartitionStrategy),
     application:set_env(ekaf, ekaf_bootstrap_broker, BootstrapBroker),
-    application:set_env(ekaf, ekaf_per_partition_workers, 10),
-    application:set_env(ekaf, ekaf_per_partition_workers_max, 20),
-    application:set_env(ekaf, ekaf_max_downtime_buffer_size, 3500000),
+    application:set_env(ekaf, ekaf_per_partition_workers, PartitionWorkers),
+    application:set_env(ekaf, ekaf_per_partition_workers_max, PartitionWorkersMax),
+    application:set_env(ekaf, ekaf_max_downtime_buffer_size, DownTimeBufferSize),
     {ok, _} = application:ensure_all_started(ekaf),
     io:format("Initialized ekaf with ~p~n", [BootstrapBroker]).        
 
@@ -229,7 +201,7 @@ sendMsgToKafka(Msg) ->
     {ok, KafkaTopic} = application:get_env(kafka_interworking_proxy, values),
     %% FailMessagePath = proplists:get_value(failMessagePath, KafkaTopic),
     ProduceTopic = proplists:get_value(kafka_producer_topic, KafkaTopic),   
-    try ekaf:produce_async(ProduceTopic, Msg) of
+    try ekaf:produce_sync(ProduceTopic, Msg) of
         _ -> ok
     catch
         error:Msg -> io:format("kafka sending : error : ~p~n", [Msg])
