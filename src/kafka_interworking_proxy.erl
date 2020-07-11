@@ -172,8 +172,6 @@ on_message_acked(_ClientInfo = #{clientid := ClientId, username := Username}, Me
 unload() ->
     emqx:unhook('client.connack',      {?MODULE, on_client_connack}),
     emqx:unhook('client.disconnected', {?MODULE, on_client_disconnected}),
-    emqx:unhook('session.subscribed',  {?MODULE, on_session_subscribed}),
-    emqx:unhook('session.unsubscribed',{?MODULE, on_session_unsubscribed}),
     emqx:unhook('message.publish',     {?MODULE, on_message_publish}),
     emqx:unhook('message.delivered',   {?MODULE, on_message_delivered}),
     emqx:unhook('message.acked',       {?MODULE, on_message_acked}).
