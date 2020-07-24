@@ -230,11 +230,10 @@ ekaf_init(_Env) ->
     io:format("Initialized ekaf with ~p~n", [BootstrapBroker]).        
 
 %% sending JSON messasge toward kafka server
-sendMsgToKafka(Msg) ->
+sendMsgToKafka(Topic, Msg) ->
     {ok, KafkaTopic} = application:get_env(kafka_interworking_proxy, values),
-    %% FailMessagePath = proplists:get_value(failMessagePath, KafkaTopic),
-    ProduceTopic = proplists:get_value(kafka_producer_topic, KafkaTopic),   
-    try ekaf:produce_sync(ProduceTopic, Msg) of
+    %% FailMessagePath = proplists:get_value(failMessagePath, KafkaTopic), 
+    try ekaf:produce_sync(Topic, Msg) of
         _ -> ok
     catch
         error:Msg -> io:format("kafka sending : error : ~p~n", [Msg])
