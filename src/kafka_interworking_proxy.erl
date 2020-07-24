@@ -78,7 +78,7 @@ on_client_connack(ConnInfo = #{clientid := ClientId, username := Username }, Rc,
                 {username, Username},    
                 {result, Rc}
             ]),
-            sendMsgToKafka(<<"v2n-tmap-client">>, Json)
+            sendMsgToKafka(<<"v2n-ovs-client">>, Json)
     end,
         %%----------------------------------------------------
         %% Remaining for other usage
