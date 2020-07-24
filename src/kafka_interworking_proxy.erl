@@ -55,16 +55,31 @@ load(Env) ->
 
 
 on_client_connack(ConnInfo = #{clientid := ClientId, username := Username }, Rc, Props, _Env) ->
-    Json = jsx:encode([
-            {broker, list_to_binary(hostName())},
-            {hook, list_to_binary("on_client_connected")},
-            {timestamp, list_to_binary(timestamp())},
-            {clientId, ClientId },
-            {username, Username},    
-            {result, Rc}
-        ]),
-        sendMsgToKafka(Json),
 
+    Checker1 = string:find(Username, "tmapclient") =:= Username,
+
+    if
+        Checker1 =:= true ->
+            Json = jsx:encode([
+                {broker, list_to_binary(hostName())},
+                {hook, list_to_binary("on_client_connected")},
+                {timestamp, list_to_binary(timestamp())},
+                {clientId, ClientId },
+                {username, Username},    
+                {result, Rc}
+            ]),
+            sendMsgToKafka("v2n-tmap-client", Json);
+        true ->
+            Json = jsx:encode([
+                {broker, list_to_binary(hostName())},
+                {hook, list_to_binary("on_client_connected")},
+                {timestamp, list_to_binary(timestamp())},
+                {clientId, ClientId },
+                {username, Username},    
+                {result, Rc}
+            ]),
+            sendMsgToKafka("v2n-ovs-client", Json),
+    end,
         %%----------------------------------------------------
         %% Remaining for other usage
         %%----------------------------------------------------
@@ -89,7 +104,7 @@ on_client_disconnected(ClientInfo = #{clientid := ClientId, username := Username
             {username, Username},    
             {reason, ReasonCode}
         ]),
-        sendMsgToKafka(Json).
+        sendMsgToKafka("v2n-tmap-client", Json).
 
 %%--------------------------------------------------------------------
 %% Session Lifecircle Hooks
@@ -104,7 +119,7 @@ on_session_subscribed(#{clientid := ClientId, username := Username}, Topic, SubO
                 {username, Username},
                 {topic, Topic}
             ]),
-            sendMsgToKafka(Json).
+            sendMsgToKafka("v2n-tmap-client", Json).
 
 on_session_unsubscribed(#{clientid := ClientId, username := Username}, Topic, Opts, _Env) ->
      Json = jsx:encode([
@@ -115,7 +130,7 @@ on_session_unsubscribed(#{clientid := ClientId, username := Username}, Topic, Op
                 {username, Username},
                 {topic, Topic}
             ]),
-            sendMsgToKafka(Json).
+            sendMsgToKafka("v2n-tmap-client", Json).
 
 
 %%--------------------------------------------------------------------
@@ -148,7 +163,7 @@ on_message_publish(Message = #message{topic = Topic, payload = Payload, qos = Qo
                         {payload, Payload},
                         {qos, Qos}
                     ]),
-            sendMsgToKafka(Json)
+            sendMsgToKafka("v2n-tmap-client", Json)
     end.
     
 
@@ -175,7 +190,7 @@ on_message_delivered(_ClientInfo = #{clientid := ClientId, username := Username}
                     {payload, Payload},
                     {timestamp, list_to_binary(timestamp())}
                 ]),
-                sendMsgToKafka(Json);
+                sendMsgToKafka("v2n-tmap-client", Json);
         true -> ok
     end.
 
@@ -196,7 +211,7 @@ on_message_acked(_ClientInfo = #{clientid := ClientId, username := Username}, Me
                 {payload, Payload},
                 {timestamp, list_to_binary(timestamp())}
             ]),
-            sendMsgToKafka(Json);    
+            sendMsgToKafka("v2n-tmap-client", Json);    
         true -> ok
             
     end.
