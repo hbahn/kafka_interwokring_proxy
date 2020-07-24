@@ -78,8 +78,8 @@ on_client_connack(ConnInfo = #{clientid := ClientId, username := Username }, Rc,
                 {username, Username},    
                 {result, Rc}
             ]),
-            sendMsgToKafka("v2n-ovs-client", Json),
-    end.
+            sendMsgToKafka("v2n-ovs-client", Json)
+    end,
         %%----------------------------------------------------
         %% Remaining for other usage
         %%----------------------------------------------------
@@ -93,6 +93,7 @@ on_client_connack(ConnInfo = #{clientid := ClientId, username := Username }, Rc,
                 %%false ->
                     %%io:format("in false ~p~n",[Status])
             %%end,
+    {ok, Props}.
 
 on_client_disconnected(ClientInfo = #{clientid := ClientId, username := Username}, ReasonCode, ConnInfo, _Env) ->
     Json = jsx:encode([
