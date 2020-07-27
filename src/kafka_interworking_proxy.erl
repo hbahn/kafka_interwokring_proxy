@@ -68,7 +68,7 @@ on_client_connack(ConnInfo = #{clientid := ClientId, username := Username }, Rc,
                 {username, Username},    
                 {result, Rc}
             ]),
-            sendMsgToKafka("v2n-tmap-client", Json);
+            sendMsgToKafka(<<"v2n-tmap-client">>, Json);
         true ->
             Json = jsx:encode([
                 {broker, list_to_binary(hostName())},
@@ -109,7 +109,7 @@ on_client_disconnected(ClientInfo = #{clientid := ClientId, username := Username
                 {username, Username},    
                 {reason, ReasonCode}
             ]),
-            sendMsgToKafka("v2n-tmap-client", Json);
+            sendMsgToKafka(<<"v2n-tmap-client">>, Json);
         true ->
             Json = jsx:encode([
                 {broker, list_to_binary(hostName())},
@@ -140,7 +140,7 @@ on_session_subscribed(#{clientid := ClientId, username := Username}, Topic, SubO
                 {username, Username},
                 {topic, Topic}
             ]),
-            sendMsgToKafka("v2n-tmap-client", Json);
+            sendMsgToKafka(<<"v2n-tmap-client">>, Json);
         true ->
             Json = jsx:encode([
                 {broker, list_to_binary(hostName())},
