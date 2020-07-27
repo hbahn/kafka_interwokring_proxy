@@ -68,7 +68,7 @@ on_client_connack(ConnInfo = #{clientid := ClientId, username := Username }, Rc,
                 {username, Username},    
                 {result, Rc}
             ]),
-            sendMsgToKafka(<<"v2n-tmap-client">>, Json);
+            sendMsgToKafka("v2n-tmap-client", Json);
         true ->
             Json = jsx:encode([
                 {broker, list_to_binary(hostName())},
@@ -96,22 +96,43 @@ on_client_connack(ConnInfo = #{clientid := ClientId, username := Username }, Rc,
     {ok, Props}.
 
 on_client_disconnected(ClientInfo = #{clientid := ClientId, username := Username}, ReasonCode, ConnInfo, _Env) ->
-    Json = jsx:encode([
-            {broker, list_to_binary(hostName())},
-            {hook, list_to_binary("on_client_disconnected")},
-            {timestamp, list_to_binary(timestamp())},
-            {clientId, ClientId },
-            {username, Username},    
-            {reason, ReasonCode}
-        ]),
-        sendMsgToKafka(<<"v2n-tmap-client">>, Json).
+
+    Checker1 = string:find(Username, "tmapclient") =:= Username,
+
+    if
+        Checker1 =:= true ->
+            Json = jsx:encode([
+                {broker, list_to_binary(hostName())},
+                {hook, list_to_binary("on_client_disconnected")},
+                {timestamp, list_to_binary(timestamp())},
+                {clientId, ClientId },
+                {username, Username},    
+                {reason, ReasonCode}
+            ]),
+            sendMsgToKafka("v2n-tmap-client", Json);
+        true ->
+            Json = jsx:encode([
+                {broker, list_to_binary(hostName())},
+                {hook, list_to_binary("on_client_disconnected")},
+                {timestamp, list_to_binary(timestamp())},
+                {clientId, ClientId },
+                {username, Username},    
+                {reason, ReasonCode}
+            ]),
+            sendMsgToKafka(<<"v2n-ovs-client">>, Json)
+    end.
 
 %%--------------------------------------------------------------------
 %% Session Lifecircle Hooks
 %%--------------------------------------------------------------------
 
 on_session_subscribed(#{clientid := ClientId, username := Username}, Topic, SubOpts, _Env) ->
-    Json = jsx:encode([
+
+    Checker1 = string:find(Username, "tmapclient") =:= Username,
+
+    if
+        Checker1 =:= true ->
+            Json = jsx:encode([
                 {broker, list_to_binary(hostName())},
                 {hook, list_to_binary("on_session_subscribe")},
                 {timestamp, list_to_binary(timestamp())},
@@ -119,10 +140,26 @@ on_session_subscribed(#{clientid := ClientId, username := Username}, Topic, SubO
                 {username, Username},
                 {topic, Topic}
             ]),
-            sendMsgToKafka(<<"v2n-tmap-client">>, Json).
+            sendMsgToKafka("v2n-tmap-client", Json);
+        true ->
+            Json = jsx:encode([
+                {broker, list_to_binary(hostName())},
+                {hook, list_to_binary("on_session_subscribe")},
+                {timestamp, list_to_binary(timestamp())},
+                {clientId, ClientId },
+                {username, Username},
+                {topic, Topic}
+            ]),
+            sendMsgToKafka(<<"v2n-ovs-client">>, Json)
+    end.
 
 on_session_unsubscribed(#{clientid := ClientId, username := Username}, Topic, Opts, _Env) ->
-     Json = jsx:encode([
+
+    Checker1 = string:find(Username, "tmapclient") =:= Username,
+
+    if
+        Checker1 =:= true ->
+            Json = jsx:encode([
                 {broker, list_to_binary(hostName())},
                 {hook, list_to_binary("on_session_unsubscribe")},
                 {timestamp, list_to_binary(timestamp())},
@@ -130,8 +167,18 @@ on_session_unsubscribed(#{clientid := ClientId, username := Username}, Topic, Op
                 {username, Username},
                 {topic, Topic}
             ]),
-            sendMsgToKafka(<<"v2n-tmap-client">>, Json).
-
+            sendMsgToKafka("v2n-tmap-client", Json);
+        true ->
+            Json = jsx:encode([
+                {broker, list_to_binary(hostName())},
+                {hook, list_to_binary("on_session_unsubscribe")},
+                {timestamp, list_to_binary(timestamp())},
+                {clientId, ClientId },
+                {username, Username},
+                {topic, Topic}
+            ]),
+            sendMsgToKafka(<<"v2n-ovs-client">>, Json)
+    end.
 
 %%--------------------------------------------------------------------
 %% Message PubSub Hooks
@@ -147,23 +194,38 @@ on_message_publish(Message = #message{topic = Topic, payload = Payload, qos = Qo
     Checker1 = string:find(From, "smart-fleet-vse-firehouse-alert-") =:= From,
     Checker2 = string:find(From, "smart-fleet-vse-ex-cits-alert-") =:= From,
     Checker3 = string:find(From, "smart-fleet-ovs-") =:= From,
-    Checker4 = string:find(Topic, "ovs/location") =:= Topic, 
-
+    Checker4 = string:find(Topic, "ovs/location") =:= Topic,
+    
     if
-        Checker1 =:= true orelse Checker2 =:= true orelse Checker3 =:= true orelse Checker4 =:=true ->
+        Checker1 =:= true orelse Checker2 =:= true orelse Checker3 =:= true orelse Checker4 =:= true orelse Checker5  ->
             ok;
         true ->
-            Json = jsx:encode([
-                        {broker, list_to_binary(hostName())},
-                        {hook, list_to_binary("on_message_publish")},
-                        {timestamp, list_to_binary(timestamp())},
-                        {clientId, From },
-                        {username, emqx_message:get_header(username, Message, undefined)},
-                        {topic, Topic},
-                        {payload, Payload},
-                        {qos, Qos}
-                    ]),
-            sendMsgToKafka(<<"v2n-tmap-client">>, Json)
+            if 
+                Checker5 =:= true ->
+                Json = jsx:encode([
+                            {broker, list_to_binary(hostName())},
+                            {hook, list_to_binary("on_message_publish")},
+                            {timestamp, list_to_binary(timestamp())},
+                            {clientId, From },
+                            {username, emqx_message:get_header(username, Message, undefined)},
+                            {topic, Topic},
+                            {payload, Payload},
+                            {qos, Qos}
+                        ]),
+                sendMsgToKafka(<<"v2n-tmap-client">>, Json);
+            true ->
+                Json = jsx:encode([
+                            {broker, list_to_binary(hostName())},
+                            {hook, list_to_binary("on_message_publish")},
+                            {timestamp, list_to_binary(timestamp())},
+                            {clientId, From },
+                            {username, emqx_message:get_header(username, Message, undefined)},
+                            {topic, Topic},
+                            {payload, Payload},
+                            {qos, Qos}
+                        ]),
+                sendMsgToKafka(<<"v2n-ovs-client">>, Json)
+            end;
     end.
     
 
@@ -173,6 +235,7 @@ on_message_dropped(Message, _By = #{node := Node}, Reason, _Env) ->
     io:format("Message dropped by node ~s due to ~s: ~s~n",
               [Node, Reason, emqx_message:format(Message)]).
 
+%% Logs only for OVS Clients
 on_message_delivered(_ClientInfo = #{clientid := ClientId, username := Username}, Message = #message{topic = Topic, from = From, payload = Payload}, _Env) ->
 
     Checker1 = string:find(From, "smart-fleet-ovs-") =:= From,
@@ -190,7 +253,7 @@ on_message_delivered(_ClientInfo = #{clientid := ClientId, username := Username}
                     {payload, Payload},
                     {timestamp, list_to_binary(timestamp())}
                 ]),
-                sendMsgToKafka(<<"v2n-tmap-client">>, Json);
+                sendMsgToKafka("v2n-ovs-server", Json);
         true -> ok
     end.
 
@@ -211,7 +274,7 @@ on_message_acked(_ClientInfo = #{clientid := ClientId, username := Username}, Me
                 {payload, Payload},
                 {timestamp, list_to_binary(timestamp())}
             ]),
-            sendMsgToKafka(<<"v2n-tmap-client">>, Json);    
+            sendMsgToKafka("v2n-ovs-server", Json);    
         true -> ok
             
     end.
