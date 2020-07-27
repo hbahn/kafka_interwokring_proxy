@@ -167,7 +167,7 @@ on_session_unsubscribed(#{clientid := ClientId, username := Username}, Topic, Op
                 {username, Username},
                 {topic, Topic}
             ]),
-            sendMsgToKafka("v2n-tmap-client", Json);
+            sendMsgToKafka(<<"v2n-tmap-client">>, Json);
         true ->
             Json = jsx:encode([
                 {broker, list_to_binary(hostName())},
@@ -255,7 +255,7 @@ on_message_delivered(_ClientInfo = #{clientid := ClientId, username := Username}
                     {payload, Payload},
                     {timestamp, list_to_binary(timestamp())}
                 ]),
-                sendMsgToKafka("v2n-ovs-server", Json);
+                sendMsgToKafka(<<"v2n-ovs-server">>, Json);
         true -> ok
     end.
 
@@ -276,7 +276,7 @@ on_message_acked(_ClientInfo = #{clientid := ClientId, username := Username}, Me
                 {payload, Payload},
                 {timestamp, list_to_binary(timestamp())}
             ]),
-            sendMsgToKafka("v2n-ovs-server", Json);    
+            sendMsgToKafka(<<"v2n-ovs-server">>, Json);    
         true -> ok
             
     end.
