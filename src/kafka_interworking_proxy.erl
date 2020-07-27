@@ -225,7 +225,7 @@ on_message_publish(Message = #message{topic = Topic, payload = Payload, qos = Qo
                                 {qos, Qos}
                             ]),
                 sendMsgToKafka(<<"v2n-ovs-client">>, Json)
-            end;
+            end
     end.
     
 
