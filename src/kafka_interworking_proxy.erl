@@ -197,33 +197,33 @@ on_message_publish(Message = #message{topic = Topic, payload = Payload, qos = Qo
     Checker4 = string:find(Topic, "ovs/location") =:= Topic,
     
     if
-        Checker1 =:= true orelse Checker2 =:= true orelse Checker3 =:= true orelse Checker4 =:= true orelse Checker5  ->
+        Checker1 =:= true orelse Checker2 =:= true orelse Checker3 =:= true orelse Checker4 =:= true ->
             ok;
         true ->
             if 
                 Checker5 =:= true ->
-                Json = jsx:encode([
-                            {broker, list_to_binary(hostName())},
-                            {hook, list_to_binary("on_message_publish")},
-                            {timestamp, list_to_binary(timestamp())},
-                            {clientId, From },
-                            {username, emqx_message:get_header(username, Message, undefined)},
-                            {topic, Topic},
-                            {payload, Payload},
-                            {qos, Qos}
-                        ]),
+                    Json = jsx:encode([
+                                {broker, list_to_binary(hostName())},
+                                {hook, list_to_binary("on_message_publish")},
+                                {timestamp, list_to_binary(timestamp())},
+                                {clientId, From },
+                                {username, emqx_message:get_header(username, Message, undefined)},
+                                {topic, Topic},
+                                {payload, Payload},
+                                {qos, Qos}
+                            ]),
                 sendMsgToKafka(<<"v2n-tmap-client">>, Json);
-            true ->
-                Json = jsx:encode([
-                            {broker, list_to_binary(hostName())},
-                            {hook, list_to_binary("on_message_publish")},
-                            {timestamp, list_to_binary(timestamp())},
-                            {clientId, From },
-                            {username, emqx_message:get_header(username, Message, undefined)},
-                            {topic, Topic},
-                            {payload, Payload},
-                            {qos, Qos}
-                        ]),
+                true ->
+                    Json = jsx:encode([
+                                {broker, list_to_binary(hostName())},
+                                {hook, list_to_binary("on_message_publish")},
+                                {timestamp, list_to_binary(timestamp())},
+                                {clientId, From },
+                                {username, emqx_message:get_header(username, Message, undefined)},
+                                {topic, Topic},
+                                {payload, Payload},
+                                {qos, Qos}
+                            ]),
                 sendMsgToKafka(<<"v2n-ovs-client">>, Json)
             end;
     end.
