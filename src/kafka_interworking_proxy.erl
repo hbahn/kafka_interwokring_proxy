@@ -195,6 +195,8 @@ on_message_publish(Message = #message{topic = Topic, payload = Payload, qos = Qo
     Checker2 = string:find(From, "smart-fleet-vse-ex-cits-alert-") =:= From,
     Checker3 = string:find(From, "smart-fleet-ovs-") =:= From,
     Checker4 = string:find(Topic, "ovs/location") =:= Topic,
+    Checker5 = string:find(Username, "tmapclient") =:= From,
+
     
     if
         Checker1 =:= true orelse Checker2 =:= true orelse Checker3 =:= true orelse Checker4 =:= true ->
