@@ -191,11 +191,13 @@ on_message_publish(Message = #message{topic = <<"$SYS/", _/binary>>}, _Env) ->
 on_message_publish(Message = #message{topic = Topic, payload = Payload, qos = Qos, from = From, headers = Headers}, _Env) ->
     %% TODO : Topic-ignored code is needed
 
+    Username = emqx_message:get_header(username, Message, undefined),
+
     Checker1 = string:find(From, "smart-fleet-vse-firehouse-alert-") =:= From,
     Checker2 = string:find(From, "smart-fleet-vse-ex-cits-alert-") =:= From,
     Checker3 = string:find(From, "smart-fleet-ovs-") =:= From,
     Checker4 = string:find(Topic, "ovs/location") =:= Topic,
-    Checker5 = string:find(From, "tmapclient") =:= From,
+    Checker5 = string:find(Username, "tmapclient") =:= Username,
 
     
     if
@@ -209,7 +211,7 @@ on_message_publish(Message = #message{topic = Topic, payload = Payload, qos = Qo
                                 {hook, list_to_binary("on_message_publish")},
                                 {timestamp, list_to_binary(timestamp())},
                                 {clientId, From },
-                                {username, emqx_message:get_header(username, Message, undefined)},
+                                {username, Username},
                                 {topic, Topic},
                                 {payload, Payload},
                                 {qos, Qos}
@@ -221,7 +223,7 @@ on_message_publish(Message = #message{topic = Topic, payload = Payload, qos = Qo
                                 {hook, list_to_binary("on_message_publish")},
                                 {timestamp, list_to_binary(timestamp())},
                                 {clientId, From },
-                                {username, emqx_message:get_header(username, Message, undefined)},
+                                {username, Username},
                                 {topic, Topic},
                                 {payload, Payload},
                                 {qos, Qos}
