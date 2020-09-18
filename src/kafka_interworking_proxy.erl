@@ -132,15 +132,7 @@ on_session_subscribed(#{clientid := ClientId, username := Username}, Topic, SubO
 
     if
         Checker1 =:= true ->
-            Json = jsx:encode([
-                {broker, list_to_binary(hostName())},
-                {hook, list_to_binary("on_session_subscribe")},
-                {timestamp, list_to_binary(timestamp())},
-                {clientId, ClientId },
-                {username, Username},
-                {topic, Topic}
-            ]),
-            sendMsgToKafka(<<"v2n-tmap-client">>, Json);
+            ok;
         true ->
             Json = jsx:encode([
                 {broker, list_to_binary(hostName())},
@@ -159,15 +151,7 @@ on_session_unsubscribed(#{clientid := ClientId, username := Username}, Topic, Op
 
     if
         Checker1 =:= true ->
-            Json = jsx:encode([
-                {broker, list_to_binary(hostName())},
-                {hook, list_to_binary("on_session_unsubscribe")},
-                {timestamp, list_to_binary(timestamp())},
-                {clientId, ClientId },
-                {username, Username},
-                {topic, Topic}
-            ]),
-            sendMsgToKafka(<<"v2n-tmap-client">>, Json);
+            ok;
         true ->
             Json = jsx:encode([
                 {broker, list_to_binary(hostName())},
