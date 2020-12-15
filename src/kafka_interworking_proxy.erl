@@ -203,6 +203,8 @@ on_message_publish(Message = #message{topic = Topic, payload = Payload, qos = Qo
     Checker3 = string:find(From, "smart-fleet-ovs-") =:= From,
     Checker4 = string:find(Topic, "ovs/location") =:= Topic,
     Checker5 = string:find(Username, "tmapclient") =:= Username,
+    Checker6 = string:find(Username, "tmapautoclient") =:= Username,
+
 
     
     if
@@ -210,7 +212,7 @@ on_message_publish(Message = #message{topic = Topic, payload = Payload, qos = Qo
             ok;
         true ->
             if 
-                Checker5 =:= true ->
+                Checker5 =:= true orelse Checker6 =:= true ->
                     Json = jsx:encode([
                                 {broker, list_to_binary(hostName())},
                                 {hook, list_to_binary("on_message_publish")},
