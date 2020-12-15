@@ -164,7 +164,7 @@ on_session_unsubscribed(#{clientid := ClientId, username := Username}, Topic, Op
         Checker1 =:= true ->
             Json = jsx:encode([
                 {broker, list_to_binary(hostName())},
-                {hook, list_to_binary("on_session_subscribe")},
+                {hook, list_to_binary("on_session_unsubscribe")},
                 {timestamp, list_to_binary(timestamp())},
                 {clientId, ClientId },
                 {username, Username},
