@@ -132,9 +132,10 @@ on_client_disconnected(ClientInfo = #{clientid := ClientId, username := Username
 on_session_subscribed(#{clientid := ClientId, username := Username}, Topic, SubOpts, _Env) ->
 
     Checker1 = string:find(Username, "tmapclient") =:= Username,
+    Checker2 = string:find(Username, "tmapautoclient") =:= Username,
 
     if
-        Checker1 =:= true ->
+        Checker1 =:= true orelse Checker2 =:= true ->
             Json = jsx:encode([
                 {broker, list_to_binary(hostName())},
                 {hook, list_to_binary("on_session_subscribe")},
@@ -159,9 +160,10 @@ on_session_subscribed(#{clientid := ClientId, username := Username}, Topic, SubO
 on_session_unsubscribed(#{clientid := ClientId, username := Username}, Topic, Opts, _Env) ->
 
     Checker1 = string:find(Username, "tmapclient") =:= Username,
+    Checker2 = string:find(Username, "tmapautoclient") =:= Username,
 
     if
-        Checker1 =:= true ->
+        Checker1 =:= true orelse Checker2 =:= true ->
             Json = jsx:encode([
                 {broker, list_to_binary(hostName())},
                 {hook, list_to_binary("on_session_unsubscribe")},
