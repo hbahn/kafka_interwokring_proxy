@@ -57,9 +57,10 @@ load(Env) ->
 on_client_connack(ConnInfo = #{clientid := ClientId, username := Username }, Rc, Props, _Env) ->
 
     Checker1 = string:find(Username, "tmapclient") =:= Username,
+    Checker2 = string:find(Username, "tmapautoclient") =:= Username,
 
     if
-        Checker1 =:= true ->
+        true Checker1 =:= true orelse Checker2 =:= true ->
             Json = jsx:encode([
                 {broker, list_to_binary(hostName())},
                 {hook, list_to_binary("on_client_connected")},
