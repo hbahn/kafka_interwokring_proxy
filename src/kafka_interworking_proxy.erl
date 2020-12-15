@@ -60,7 +60,7 @@ on_client_connack(ConnInfo = #{clientid := ClientId, username := Username }, Rc,
     Checker2 = string:find(Username, "tmapautoclient") =:= Username,
 
     if
-        true Checker1 =:= true orelse Checker2 =:= true ->
+        Checker1 =:= true orelse Checker2 =:= true ->
             Json = jsx:encode([
                 {broker, list_to_binary(hostName())},
                 {hook, list_to_binary("on_client_connected")},
@@ -99,9 +99,11 @@ on_client_connack(ConnInfo = #{clientid := ClientId, username := Username }, Rc,
 on_client_disconnected(ClientInfo = #{clientid := ClientId, username := Username}, ReasonCode, ConnInfo, _Env) ->
 
     Checker1 = string:find(Username, "tmapclient") =:= Username,
+    Checker2 = string:find(Username, "tmapautoclient") =:= Username,
+
 
     if
-        Checker1 =:= true ->
+        Checker1 =:= true orelse Checker2 =:= true ->
             Json = jsx:encode([
                 {broker, list_to_binary(hostName())},
                 {hook, list_to_binary("on_client_disconnected")},
